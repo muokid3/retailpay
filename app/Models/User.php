@@ -21,6 +21,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'branch_id',
+        'store_id',
     ];
 
     /**
@@ -44,5 +47,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    public function isAdministrator()
+    {
+        return $this->role === 'administrator';
+    }
+
+    public function isBranchManager()
+    {
+        return $this->role === 'branch_manager';
+    }
+
+    public function isStoreManager()
+    {
+        return $this->role === 'store_manager';
     }
 }
