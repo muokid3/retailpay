@@ -72,7 +72,7 @@ class DatabaseSeeder extends Seeder
         foreach ($stores as $index => $store) {
             User::create([
                 'name' => "Manager {$store->name}",
-                'email' => "manager." . strtolower($store->name) . "@retailpay.test",
+                'email' => "manager." . str_replace(' ', '', strtolower($store->name)) . "@retailpay.test",
                 'password' => Hash::make('password'),
                 'role' => 'store_manager',
                 'branch_id' => $store->branch_id,
