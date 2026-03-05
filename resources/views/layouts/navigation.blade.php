@@ -12,9 +12,18 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                    <x-nav-link :href="route('inventory.index')" :active="request()->routeIs('inventory.*')">
+                        {{ __('Inventory') }}
                     </x-nav-link>
+
+                    @if(Auth::user()->isAdministrator())
+                        <x-nav-link href="#" :active="false">
+                            {{ __('Branches') }}
+                        </x-nav-link>
+                        <x-nav-link href="#" :active="false">
+                            {{ __('Products') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
