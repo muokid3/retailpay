@@ -1,66 +1,50 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# RetailPay: KK Wholesalers Inventory System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Inventory movement system built with **Bare Metal Laravel 11**, no external dependencies. It addresses stock inconsistencies, race conditions, and audit challenges through a ledger-based approach.
 
-## About Laravel
+## Implementation Overview
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+The project was implemented in the phases outlined below: 
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 1. Database Implementation 
+- **Migrations**: Created clean, timestamped migrations for `branches`, `stores`, `products`, `stocks`, and `stock_movements`.
+- **Eloquent Models**: Implemented Eloquent models with full relationship definitions and performance-optimized eager loading.
+- **Seeding**: Populated the system with KK Wholesalers' actual structure (2 Branches, 3 Stores) and initial stock.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 2. Core Inventory Service (The Engine)
+- **`InventoryService`**: A centralized service class that handles all stock logic.
+- **Double-Entry Ledger**: Every SKU change is recorded in the `stock_movements` table, providing an immutable audit trail.
+- **Concurrency Control**: 
+    - Used `DB::transaction()` for atomicity.
+    - Implemented `lockForUpdate()` on stock rows to prevent race conditions during high-volume sales.
 
-## Learning Laravel
+### 3. Permissions & Authorization (The Guards)
+- **Role-Based Access Control (RBAC)**: Defined three core roles: `Administrator`, `Branch Manager`, and `Store Manager`.
+- **Laravel Policies**: 
+    - `StockPolicy` and `StorePolicy` enforce strict data boundaries.
+    - Managers can only view or move stock within their assigned scope (Branch or Store).
+    - Administrators have a "Master Key" via the `before()` interceptor.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 4. User Interface (The Dashboard)
+- **Blade & Tailwind**: A clean, responsive UI built using native Laravel Breeze components.
+- **Context-Aware Dashboard**: 
+    - Automatically filters stock levels and movement history based on the logged-in user's role.
+    - Summary cards provide real-time stats (Total SKUs, Network Stock).
+- **Movement Forms**: Simple forms to record Sales, Internal Transfers, Procurements, and Adjustments.
+- **Live Audit Feed**: A "Security Camera" view of recent movements displayed directly on the dashboard.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 5. Testing
+- **Feature Tests**: 
+    - `InventoryTest`: Verifies the core logic of stock changes.
+    - `AuthorizationTest`: Ensures roles cannot bypass their permissions.
+- **`ConcurrencyIntegrityTest`**: A custom stress test that runs 50+ sequential operations to verify that the Snapshot (`stocks`) and History (`stock_movements`) stay in perfect sync.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
+## Getting Started
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Install Dependencies**: `composer install && npm install`
+2. **Setup Environment**: `cp .env.example .env` and configure your database.
+3. **Migrate & Seed**: `php artisan migrate:fresh --seed`
+4. **Run Dev Server**: `php artisan serve` & `npm run dev`
+5. **Run Tests**: `php artisan test`
+6. **Login Credentials**: Check under `database/seeders/DatabaseSeeder.php` for seeded users.
